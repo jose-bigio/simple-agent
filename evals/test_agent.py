@@ -216,11 +216,10 @@ def test_vector_vs_exact_search():
     Vector search finds semantically related content even without knowing the
     exact key. Exact lookup returns None for an unknown key.
     """
-    from agent.memory import make_store, namespace_from_path, seed_hierarchy
+    from agent.memory import make_store, namespace_from_path 
     from agent.memory.store import now_iso
 
     store = make_store()
-    seed_hierarchy(store)
 
     ns = namespace_from_path("ACorp/Engineering/Tim")
     key = f"episode-{now_iso()}"
