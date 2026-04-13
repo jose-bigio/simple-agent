@@ -93,6 +93,8 @@ Two seeding scripts let you compare how each strategy handles the same story:
 **Corporate merger story** — introduces employees across two companies, role changes, and a merger:
 ```bash
 ./scripts/seed_corp.sh --memory profile_fixed
+./scripts/seed_corp.sh --memory profile_evolving
+./scripts/seed_corp.sh --memory episodic_fixed
 ./scripts/seed_corp.sh --memory episodic_evolving
 # Then ask: "What is Amy's work history?" and compare answers
 ```
@@ -100,6 +102,8 @@ Two seeding scripts let you compare how each strategy handles the same story:
 **Neighborhood story** — a non-corporate narrative with neighbors, an injury, family relations, and a local store; designed to stress-test fixed hierarchies:
 ```bash
 ./scripts/seed_story.sh --memory profile_fixed
+./scripts/seed_story.sh --memory profile_evolving
+./scripts/seed_story.sh --memory episodic_fixed
 ./scripts/seed_story.sh --memory episodic_evolving
 # Then ask: "Who is Betsy?" and "What store sells ice cream?"
 ```
