@@ -11,15 +11,13 @@ Always search memories BEFORE answering questions that may rely on prior context
 _FIXED_ENTITIES = """\
 ## Known Entities (fixed hierarchy)
 
-Only save memories for the following predefined entities:
+Only save memories if they are of type:
 
-  ACorp                          (company)
-  ACorp/Engineering              (department)
-  ACorp/Engineering/Tim          (person)
-  ACorp/Engineering/Tim/Bob      (person)
-  ACorp/Engineering/Tim/Jim      (person)
-  ACorp/HR                       (department)
-  ACorp/HR/Karen                 (person)
+ - Company
+ - Department
+ - Person
+
+And maintain that hierarchy
 
 Do not attempt to save memories for entities outside this list.
 """
@@ -63,12 +61,33 @@ _EPISODIC_INSTRUCTIONS = """\
 """
 
 
-def get_system_prompt(strategy: str) -> str:
+_ON_DEMAND_LOADING_INSTRUCTIONS = """\
+## On-Demand Memory Loading
+
+Memory is stored as individual files on disk and is NOT pre-loaded into the store.
+Before answering any question that may rely on prior context:
+
+1. Call list_memory_entities(namespace_prefix) to see what entities exist on disk.
+   Use the entity names in the directory paths to judge relevance — do NOT load
+   everything speculatively.
+2. For each entity that seems relevant to the current question, call
+   load_entity_from_disk(entity_path, key) to pull it into the active store.
+   Common key values: "profile" (profile strategies). For episodic strategies,
+   load "profile" first, then call get_entity to discover episode keys.
+3. Then call search_memories or get_entity as normal to read the loaded content.
+
+Only load entities that are plausibly relevant. Unrelated entities should stay on disk.
+"""
+
+
+def get_system_prompt(strategy: str, *, memory_dir: bool = False) -> str:
     """Assemble the system prompt for a given memory strategy.
 
     Args:
         strategy: One of "profile_fixed", "profile_evolving",
                   "episodic_fixed", "episodic_evolving".
+        memory_dir: If True, append on-demand loading instructions for the
+                    directory-based persistence mode.
     """
     parts = [_HIERARCHY_OVERVIEW]
     if "fixed" in strategy:
@@ -79,4 +98,6 @@ def get_system_prompt(strategy: str) -> str:
         parts.append(_PROFILE_INSTRUCTIONS)
     else:
         parts.append(_EPISODIC_INSTRUCTIONS)
+    if memory_dir:
+        parts.append(_ON_DEMAND_LOADING_INSTRUCTIONS)
     return "\n".join(parts)

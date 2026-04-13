@@ -38,6 +38,16 @@ def main():
         help="Override default memory persistence file path (default: ~/.simple_agent_memory_{strategy}.json)",
     )
     parser.add_argument(
+        "--memory-dir",
+        default=None,
+        metavar="PATH",
+        help=(
+            "Directory for per-entity JSON files — enables on-demand loading. "
+            "Mutually exclusive with --memory-file. "
+            "Defaults to ~/.simple_agent_memory_{strategy}/ when --memory is set."
+        ),
+    )
+    parser.add_argument(
         "--no-reindex",
         action="store_true",
         default=False,
@@ -45,29 +55,49 @@ def main():
     )
     args = parser.parse_args()
 
+    if args.memory_file and args.memory_dir:
+        parser.error("--memory-file and --memory-dir are mutually exclusive")
+
     if args.memory:
         from agent.memory import make_store
-        from agent.memory.persistence import default_memory_path, load_store, save_store
+        from agent.memory.persistence import (
+            default_memory_dir,
+            default_memory_path,
+            load_store,
+            save_store,
+            save_store_dir,
+        )
 
-        memory_path = Path(args.memory_file) if args.memory_file else default_memory_path(args.memory)
+        use_dir = args.memory_dir is not None
 
-        # Create store first so we can pass it into make_agent_with_memory,
-        # which seeds the hierarchy (for fixed strategies) before we load
-        # persisted data on top.
         store = make_store()
-        agent, store = make_agent_with_memory(args.memory, args.model, args.system, store=store)
 
-        reindex = not args.no_reindex
-        item_count = load_store(store, memory_path, reindex=reindex)
-        if item_count > 0:
-            print(f"Loaded {item_count} memories from {memory_path}")
+        if use_dir:
+            memory_dir = Path(args.memory_dir)
+            agent, store = make_agent_with_memory(
+                args.memory, args.model, args.system, store=store, memory_dir=memory_dir
+            )
+            # No eager loading — the agent fetches files on demand.
+            atexit.register(save_store_dir, store, memory_dir)
+            thread_id = str(uuid.uuid4())
+            print(f"Memory strategy: {args.memory}")
+            print(f"Memory directory: {memory_dir} (on-demand loading)")
+            print(f"Thread ID: {thread_id}  (memories persist across sessions)\n")
+        else:
+            memory_path = Path(args.memory_file) if args.memory_file else default_memory_path(args.memory)
 
-        atexit.register(save_store, store, memory_path)
+            agent, store = make_agent_with_memory(args.memory, args.model, args.system, store=store)
 
-        thread_id = str(uuid.uuid4())
-        print(f"Memory strategy: {args.memory}")
-        print(f"Memory file: {memory_path}")
-        print(f"Thread ID: {thread_id}  (memories persist across sessions)\n")
+            reindex = not args.no_reindex
+            item_count = load_store(store, memory_path, reindex=reindex)
+            if item_count > 0:
+                print(f"Loaded {item_count} memories from {memory_path}")
+
+            atexit.register(save_store, store, memory_path)
+            thread_id = str(uuid.uuid4())
+            print(f"Memory strategy: {args.memory}")
+            print(f"Memory file: {memory_path}")
+            print(f"Thread ID: {thread_id}  (memories persist across sessions)\n")
     else:
         agent = make_agent(args.model, args.system)
         thread_id = None
@@ -101,8 +131,12 @@ def main():
         print(f"\nAssistant: {ai_msg.content}\n")
 
     if args.memory:
-        save_store(store, memory_path)
-        print(f"Memories saved to {memory_path}")
+        if use_dir:
+            count = save_store_dir(store, memory_dir)
+            print(f"Memories saved to {memory_dir} ({count} files)")
+        else:
+            save_store(store, memory_path)
+            print(f"Memories saved to {memory_path}")
 
 
 if __name__ == "__main__":

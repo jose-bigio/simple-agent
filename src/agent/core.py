@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Literal
 
 from deepagents import create_deep_agent
@@ -41,6 +42,7 @@ def make_agent_with_memory(
     system_prompt: str | None = None,
     *,
     store: InMemoryStore | None = None,
+    memory_dir: Path | None = None,
 ) -> tuple:
     """Create a deep agent configured for a specific memory strategy.
 
@@ -60,20 +62,18 @@ def make_agent_with_memory(
         invocations to share memory across conversations. Inspect the
         store directly in tests to assert on stored content.
     """
-    from agent.memory import get_system_prompt, get_tools, make_store, seed_hierarchy
+    from agent.memory import get_system_prompt, get_tools, make_store
 
     if store is None:
         store = make_store()
-    if "fixed" in strategy:
-        seed_hierarchy(store)
 
-    memory_prompt = get_system_prompt(strategy)
+    memory_prompt = get_system_prompt(strategy, memory_dir=memory_dir is not None)
     combined_prompt = (
         f"{system_prompt}\n\n{memory_prompt}" if system_prompt else memory_prompt
     )
 
     model = init_chat_model(model_str)
-    tools = get_tools(strategy)
+    tools = get_tools(strategy, memory_dir=memory_dir)
     checkpointer = InMemorySaver()
 
     agent = create_deep_agent(

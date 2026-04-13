@@ -4,18 +4,6 @@ from datetime import UTC, datetime
 
 from langgraph.store.memory import InMemoryStore
 
-# Predefined org-chart hierarchy for fixed strategies.
-# Keys are namespace tuples; values are entity types.
-FIXED_HIERARCHY: dict[tuple[str, ...], str] = {
-    ("ACorp",): "company",
-    ("ACorp", "Engineering"): "department",
-    ("ACorp", "Engineering", "Tim"): "person",
-    ("ACorp", "Engineering", "Tim", "Bob"): "person",
-    ("ACorp", "Engineering", "Tim", "Jim"): "person",
-    ("ACorp", "HR"): "department",
-    ("ACorp", "HR", "Karen"): "person",
-}
-
 
 def namespace_from_path(path: str) -> tuple[str, ...]:
     """Convert a slash-delimited path to a namespace tuple.
@@ -45,21 +33,6 @@ def make_store() -> InMemoryStore:
     Embeddings are only generated when .put() or .search(query=...) is called.
     """
     return InMemoryStore(index={"embed": _embed_texts, "dims": 768})
-
-
-def seed_hierarchy(
-    store: InMemoryStore,
-    hierarchy: dict[tuple[str, ...], str] = FIXED_HIERARCHY,
-) -> None:
-    """Seed an InMemoryStore with empty profile stubs for each entity in the hierarchy.
-
-    These stubs mark the entities as "known" so agents using fixed strategies
-    can validate entity paths before writing.
-    """
-    for ns, entity_type in hierarchy.items():
-        # index=False: stubs are placeholders only — no need to embed empty facts.
-        # Agent-written content (save_profile / save_episode) is embedded on write.
-        store.put(ns, "profile", {"entity_type": entity_type, "name": ns[-1], "facts": {}}, index=False)
 
 
 def now_iso() -> str:
