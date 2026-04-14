@@ -62,7 +62,7 @@ run_chat "Hello I am Josh and I am the accountant at Zeta Corp"
 run_chat "Hello I am Josh from Zeta Crop and I now work in IT"
 
 # Merger
-run_chat "Hello this is Mary, Acme and Zeta have now merged into one company"
+run_chat "Hello this is Mary, Acme and Zeta have now merged into one company called MIPS"
 # ──────────────────────────────────────────────────────────────────────────
 
 echo "================================================================"

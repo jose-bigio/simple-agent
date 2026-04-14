@@ -181,6 +181,41 @@ def list_entities_dir(
     return results
 
 
+def load_all_entity_keys_dir(
+    store: InMemoryStore,
+    memory_dir: Path,
+    namespace: tuple[str, ...],
+    *,
+    reindex: bool = True,
+) -> int:
+    """Load ALL keys for a single entity namespace from disk (episodic use case).
+
+    Scans only the immediate directory for the entity (non-recursive), loading
+    every .json file found. Useful when each key is its own file, as with
+    episodic strategies where keys look like "episode-2026-04-14T01:42:28+00:00".
+
+    Args:
+        store: Target InMemoryStore to populate.
+        memory_dir: Root directory written by save_store_dir().
+        namespace: Namespace tuple, e.g. ("ACorp", "Engineering", "Tim").
+        reindex: If True (default), re-put each item via store.put() so embeddings
+                 are regenerated. If False, insert directly without embedding.
+
+    Returns:
+        Number of new items loaded (already-present items are skipped).
+    """
+    entity_dir = memory_dir.joinpath(*namespace)
+    if not entity_dir.exists():
+        return 0
+    count = 0
+    for json_file in sorted(entity_dir.glob("*.json")):
+        key = _filename_to_key(json_file.stem)
+        loaded = load_entity_dir(store, memory_dir, namespace, key, reindex=reindex)
+        if loaded:
+            count += 1
+    return count
+
+
 def save_store(store: InMemoryStore, path: Path) -> None:
     """Serialize all store items to JSON at path.
 

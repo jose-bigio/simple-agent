@@ -72,8 +72,9 @@ Before answering any question that may rely on prior context:
    everything speculatively.
 2. For each entity that seems relevant to the current question, call
    load_entity_from_disk(entity_path, key) to pull it into the active store.
-   Common key values: "profile" (profile strategies). For episodic strategies,
-   load "profile" first, then call get_entity to discover episode keys.
+   - Profile strategies: use key="profile".
+   - Episodic strategies: each episode is its own file — use key="*" to bulk-load
+     ALL episodes for the entity at once.
 3. Then call search_memories or get_entity as normal to read the loaded content.
 
 Only load entities that are plausibly relevant. Unrelated entities should stay on disk.

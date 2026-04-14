@@ -180,7 +180,7 @@ def get_tools(strategy: str, memory_dir: Path | None = None) -> list:
         tools.append(create_entity)
 
     if memory_dir is not None:
-        from .persistence import list_entities_dir, load_entity_dir
+        from .persistence import list_entities_dir, load_all_entity_keys_dir, load_entity_dir
 
         _memory_dir = memory_dir  # capture for closures
 
@@ -215,13 +215,19 @@ def get_tools(strategy: str, memory_dir: Path | None = None) -> list:
 
             Args:
                 entity_path: Full path to the entity, e.g. "ACorp/Engineering/Tim".
-                key: The item key to load, e.g. "profile". For episodic strategies,
-                     use get_entity after loading to list available episode keys.
+                key: The item key to load, e.g. "profile" for profile strategies.
+                     For episodic strategies where each episode is its own file,
+                     pass "*" to bulk-load ALL episode keys for this entity at once.
 
             Returns:
-                Confirmation of whether the item was loaded, already present, or not found.
+                Confirmation of whether the item(s) were loaded, already present, or not found.
             """
             ns = namespace_from_path(entity_path)
+            if key == "*":
+                count = load_all_entity_keys_dir(runtime.store, _memory_dir, ns)
+                if count:
+                    return f"Loaded {count} item(s) for '{entity_path}' from disk."
+                return f"No files found for '{entity_path}' on disk."
             already_present = runtime.store._data.get(ns, {}).get(key) is not None
             loaded = load_entity_dir(runtime.store, _memory_dir, ns, key)
             if already_present:
