@@ -52,7 +52,13 @@ Note that this construction makes sense for a typical business use case. It's no
 
 A related limitation is in the context of the test there wasn't an effective way to identify each user. In the scripts
 the stories use their names, but there should probably be more prompting to handle name entity resolution, and recognition. 
-What ends up happening with the LLM
+What ends up happening with the LLM is that the same person, and the same company may get multiple entries.
+In the corproation story you see this with: 
+- Acme Corp / A Corp for instance
+- And there's lack of clarity on role vs department
+   - For instance in the corproation story multiple entries are stored for Tim
+
+In a more full fledged solution perhaps each user of the system would have a unique user id, and before the system updated anything about other entities in the system it could resolve the update based on confirming the identity with the user.
 
 
 ## Embeddings
@@ -64,8 +70,30 @@ I didn't explore this extensively but in order to faciliate natural language sea
 
 ### Corporation story
 
+**Profile fixed**
+- Is able to recongize merger of company, but doesn't update data
+
+**Profile evolving**
+- Is able to resolve employee information about merged company outperforming profile fixed
+- Can not answer historical information - is able to historically reflect the merger, but not past positions
+
+**Episodic fixed**
+- Can not answer who works at MIPS
+
+**Episodic evolving**
+- Can not answer who works at MIPS
+    This is particularly interesting because it's the most flexible schema, but doesn't capture the information
 
 ## Futher explorations / room for improvement
 
+### Named entity recongition / Named entity resolution
+Providing more prompting, and harnesses to resolve who is talking, and who is being talked about more formerly
 
+### Combining memory approaches
+For instance the exploration treated episodic and profile memory approahces as mutually exclusive memory approaches but it's likely you would want to employ each of these approaches based on the scenario.
 
+### Different memory stores
+The main approach that was taken was storing the results as files it would be interesting to explore storing results in different databases. For instance, there are even some extensions that allow you to use graph database semantics in sqlite.
+
+### Experimenting without using embeddings
+It would be interesting to explore having the LLM search for semantic similarities within the LLM and then grepping for a variety of results, and the efficacy of that approach.
