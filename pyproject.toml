@@ -12,6 +12,7 @@ dependencies = [
     "python-dotenv",
     "fastapi",
     "uvicorn[standard]",
+    "langchain-ollama>=1.1.0",
 ]
 
 [project.scripts]
