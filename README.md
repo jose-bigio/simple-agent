@@ -36,7 +36,7 @@ Any model supported by LangChain's [`init_chat_model`](https://python.langchain.
 
 1. Install [Ollama](https://ollama.com) and the LangChain integration:
    ```bash
-   uv pip install langchain-ollama
+    pip install langchain-ollama
    ```
 
 2. Pull the embedding model used by the memory store:
@@ -44,10 +44,11 @@ Any model supported by LangChain's [`init_chat_model`](https://python.langchain.
    ollama pull nomic-embed-text
    ```
 
-3. Keep the embedding model running (required when using `--memory`):
+3. Start ollama server
    ```bash
-   ollama run nomic-embed-text
+   ollama serve
    ```
+
 
 ## Prerequisites
 
