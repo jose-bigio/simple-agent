@@ -1,5 +1,7 @@
 # Exploring Memory Strategies 
 
+[Video walkthrough](https://www.loom.com/share/c9e6941af2854e93a53d0c62310921f8)
+
 ## Overview 
 
 The goal is to explore different memory strategies. 
